@@ -69,5 +69,45 @@ FROM (
     FROM subscriptions
     WHERE (sb_finish <= current_date AND sb_is_active = 'Y') 
     OR (sb_finish > current_date AND sb_is_active = 'N')) AS diffs;
-    
-    
+
+/*
+a) Show (for each year) how many books was taken by subscribers.
+b) Show (for each year) how many subscribers were taking books.
+c) Show how many books were returned and are not returned to the library. */
+
+-- a) 
+SELECT YEAR(sb_start) AS year, 
+COUNT(sb_id) AS books_taken
+FROM subscriptions
+GROUP BY year  
+ORDER BY year;
+
+-- b)
+SELECT YEAR(sb_start) AS year, 
+COUNT(DISTINCT sb_subscriber) AS subscribers
+FROM subscriptions
+GROUP BY year
+ORDER BY year;
+
+-- c1)
+SELECT (
+    CASE 
+    WHEN sb_is_active = 'Y' 
+    THEN 'Not returned' 
+    ELSE 'Returned' 
+    END) AS status,
+COUNT(sb_id) AS books 
+FROM subscriptions 
+GROUP BY status 
+ORDER BY status DESC;
+
+-- c2)
+SELECT 
+iff(sb_is_active = 'Y', 'Not returned', 'Returned') AS status,
+COUNT(sb_id) AS books 
+FROM subscriptions 
+GROUP BY status 
+ORDER BY status DESC;
+
+-- d) Rewrite solution 3 so that (while counting returned and not returned books) the DBMS operates the initial values of the sb_is_active field (i.e., 'Y' and 'N'), and the transformation to "Returned" and "Not returned" occurs after the count.
+
